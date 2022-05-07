@@ -5,14 +5,14 @@
 %       May 2022
 
 close all;
-clear all;
+%clear all;
 clc;
 
 img = imread('odometro1.jpg');
 
 rect = [545 594 335 145];    % Hard-coded coordinates of rectangle
 
-figure; imshow(img); title('Odometro1.jpg');
+%figure; imshow(img); title('Odometro1.jpg');
 
 % Select the Region of Interest(ROI) by hand
 %rect = getrect;              % Just comment this if you want the fixed coordinates
@@ -32,6 +32,14 @@ grayROI = rgb2gray(ROI);
 figure; imshow(grayROI); title('ROI gray');
 
 [H, theta, rho] = hough(grayROI);
+
+x = 5;
+y = (rho-x*cos(x))/sin(x);
+%[x, y] = find(ismember(H, max(H(:))));
+%[x, y] = find(ismember(H, max(max(H))));
+
+%BW = edge(grayROI);
+%figure; imshow(BW);
 
 % Display part
 subplot(2,1,1); imshow(ROI);
