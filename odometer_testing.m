@@ -9,13 +9,13 @@ close all;
 clc;
 
 img = imread('odometro1.jpg');
+%img = imread('test.jpg');
 
 rect = [545 594 335 145];    % Hard-coded coordinates of rectangle
 
-%figure; imshow(img); title('Odometro1.jpg');
-
 % Select the Region of Interest(ROI) by hand
-%rect = getrect;              % Just comment this if you want the fixed coordinates
+figure; imshow(img); title('Odometro1.jpg');    % Comment this...
+rect = getrect;         % ...and this if you want the fixed coordinates
 ROI = imcrop(img, rect);
 close all;
 
@@ -29,12 +29,15 @@ close all;
 
 % Test with gray scale 2
 grayROI = rgb2gray(ROI);
-figure; imshow(grayROI); title('ROI gray');
+figure; imshow(grayROI); title('My attempt');%title('ROI gray');
 
-[H, theta, rho] = hough(grayROI);%, 'Theta', 0:1:10);
+% Extract the edges of the gray image
+edges = edge(grayROI, "canny");
 
-% Get coordinates of lines that occurred above some threshold in the Hough process
-threshold = 355;
+[H, theta, rho] = hough(edges, 'RhoResolution', 0.5, 'Theta', -90:1:89); %'Theta', 0:1:10);
+
+% Get rows and thetas of lines occurring above the {threshold}
+threshold = 150;
 logic_nonzero = H>=threshold;
 [rows, cols] = find(logic_nonzero);
 
@@ -47,11 +50,10 @@ x = 0:size(grayROI, 2);
 y = 0:size(grayROI, 2);
 hold on;
 for i = 1:size(rows, 1)
-    hold on;
     for j = 1:size(x, 2)
         y(j) = (rho(rows(i))-x(j)*cos(theta(cols(i))))/sin(theta(cols(i)));
     end
-    y = -y; % We need this to be able to plot on the actual figure or maybe
+%      y = -y; % We need this to be able to plot on the actual figure or maybe
             % not because the points were already computed on the gray 
             % image. Who knows
     plot(x, y, '-oy');
@@ -59,11 +61,27 @@ for i = 1:size(rows, 1)
     disp(log);
 end
 hold off;
+
+% Debugging alternative:
+% hold on;
+% for i = 1:size(rows, 1)
+%     this_rho = rho(rows(i));
+%     this_theta = theta(cols(i));
+%     a = cos(this_theta);
+%     b = sin(this_theta);
+%     x0 = a*this_rho;
+%     y0 = b*this_rho;
+%     log = sprintf('%d, %d', x0, y0);
+%     disp(log);
+% end
+% hold off;
+
 disp('all done');
 
-
-%BW = edge(grayROI);
-%figure; imshow(BW);
+for i = 1:size(rows, 1)
+    log = sprintf('%d, %d', rho(rows(i)), theta(cols(i)));
+    disp(log);
+end
 
 % Display part
 % figure; imshow(imadjust(rescale(H)),'XData',theta,'YData',rho,...
@@ -73,4 +91,32 @@ disp('all done');
 % colormap(gca,hot);
 
 
+
+
+
+
+% MATLAB DOCUMENTATION EXAMPLES:
+BW = edge(grayROI,'canny');
+
+[H,theta,rho] = hough(BW);
+
+P = houghpeaks(H,5,'threshold',ceil(0.3*max(H(:))));
+
+lines = houghlines(BW,theta,rho,P,'FillGap',5,'MinLength',7);
+
+figure, imshow(grayROI), title('Matlab documentation example'), hold on
+max_len = 0;
+for k = 1:length(lines)
+   xy = [lines(k).point1; lines(k).point2];
+   plot(xy(:,1),xy(:,2),'LineWidth',2,'Color','green');
+
+   % Determine the endpoints of the longest line segment
+   len = norm(lines(k).point1 - lines(k).point2);
+   if ( len > max_len)
+      max_len = len;
+      xy_long = xy;
+   end
+end
+% highlight the longest line segment
+plot(xy_long(:,1),xy_long(:,2),'LineWidth',2,'Color','red');
 
