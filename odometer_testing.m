@@ -8,10 +8,12 @@ close all;
 %clear all;
 clc;
 
-img = imread('odometro1.jpg');
-%img = imread('test.jpg');
+% img = imread('odometro1.jpg');
+img = imread('test.jpg');
+% img = imread('radiant.jpg');
 
-rect = [545 594 335 145];    % Hard-coded coordinates of rectangle
+% Hard-coded coordinates of rectangle
+rect = [545 594 335 145];
 
 % Select the Region of Interest(ROI) by hand
 figure; imshow(img); title('Odometro1.jpg');    % Comment this...
@@ -31,13 +33,19 @@ close all;
 grayROI = rgb2gray(ROI);
 figure; imshow(grayROI); title('My attempt');%title('ROI gray');
 
+% If you use the radiant image, uncheck this
+% grayROI = ROI;
+
 % Extract the edges of the gray image
 edges = edge(grayROI, "canny");
 
-[H, theta, rho] = hough(edges, 'RhoResolution', 0.5, 'Theta', -90:1:89); %'Theta', 0:1:10);
+% Horizontal angles to be identified in our case
+angles = [-90:1:-45, 45:1:89];
+
+[H, theta, rho] = hough(edges, 'RhoResolution', 1, 'Theta', angles); %'Theta', -90:0.5:89);
 
 % Get rows and thetas of lines occurring above the {threshold}
-threshold = 150;
+threshold = 70;
 logic_nonzero = H>=threshold;
 [rows, cols] = find(logic_nonzero);
 
@@ -53,10 +61,10 @@ for i = 1:size(rows, 1)
     for j = 1:size(x, 2)
         y(j) = (rho(rows(i))-x(j)*cos(theta(cols(i))))/sin(theta(cols(i)));
     end
-%      y = -y; % We need this to be able to plot on the actual figure or maybe
+%     y = -y; % We need this to be able to plot on the actual figure or maybe
             % not because the points were already computed on the gray 
             % image. Who knows
-    plot(x, y, '-oy');
+    plot(x, y, 'LineWidth',2,'Color','yellow'); %'-oy');
     log = sprintf('%d/%d', i, size(rows, 1));
     disp(log);
 end
@@ -98,9 +106,9 @@ end
 % MATLAB DOCUMENTATION EXAMPLES:
 BW = edge(grayROI,'canny');
 
-[H,theta,rho] = hough(BW);
+[H,theta,rho] = hough(BW, 'RhoResolution', 1, 'Theta', angles);
 
-P = houghpeaks(H,5,'threshold',ceil(0.3*max(H(:))));
+P = houghpeaks(H,14,'threshold',ceil(0.3*max(H(:))));
 
 lines = houghlines(BW,theta,rho,P,'FillGap',5,'MinLength',7);
 
