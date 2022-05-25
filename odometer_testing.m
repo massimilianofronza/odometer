@@ -24,14 +24,6 @@ rect = [192 184 180 188];
 % (2) Crop the ROI
 ROI = imcrop(img, rect);
 
-%figure; imshow(ROI); title('ROI');
-%figure; imhist(ROI); title('ROI - Histogram');
-
-% Tests with gray scale
-%grayImage = ind2gray(ROI, gray(200));
-%figure; imshow(grayImage); title('ROI gray');
-%figure; imhist(grayImage); title('ROI gray - Histogram');
-
 % (3a) Convert into gray scale the 3-dimensional image
 grayROI = rgb2gray(ROI);
 % figure; imshow(grayROI); title('My attempt');%title('ROI gray');
@@ -55,10 +47,6 @@ P = houghpeaks(H, 5);
 threshold = 115;
 logic_nonzero = H>=threshold;
 [rows, cols] = find(logic_nonzero);
-
-% If you want to pick the absolute maximum element
-% [rows, cols] = find(ismember(H, max(H(:))));
-% [rows, cols] = find(ismember(H, max(max(H))));   % alternative method
 
 % (8) Find the top P lines previously identified
 % TODO Fillgap and MinLength are the ones I have to use to obtain continuous lines
@@ -101,20 +89,6 @@ for i = 1:size(rows, 1) % change to length(rows)
 end
 hold off;
 
-% Debugging alternative:
-% hold on;
-% for i = 1:size(rows, 1)
-%     this_rho = rho(rows(i));
-%     this_theta = theta(cols(i));
-%     a = cos(this_theta);
-%     b = sin(this_theta);
-%     x0 = a*this_rho;
-%     y0 = b*this_rho;
-%     log = sprintf('%d, %d', x0, y0);
-%     disp(log);
-% end
-% hold off;
-
 disp('all done.');
 disp('Printing rows and cols actual rhos and thetas:');
 
@@ -122,41 +96,4 @@ for i = 1:length(rows)
     log = sprintf('%d, %d', rho(rows(i)), theta(cols(i)));
     disp(log);
 end
-
-% Display part
-% figure; imshow(imadjust(rescale(H)),'XData',theta,'YData',rho,...
-%      'InitialMagnification','fit');
-% xlabel('\theta'), ylabel('\rho');
-% axis on, axis normal;
-% colormap(gca,hot);
-
-
-
-
-
-
-% MATLAB DOCUMENTATION EXAMPLES:
-% BW = edge(grayROI,'canny');
-% 
-% [H,theta,rho] = hough(BW, 'RhoResolution', 1, 'Theta', angles);
-% 
-% P = houghpeaks(H,14,'threshold',ceil(0.3*max(H(:))));
-% 
-% lines = houghlines(BW,theta,rho,P,'FillGap',5,'MinLength',7);
-% 
-% figure, imshow(grayROI), title('Matlab documentation example'), hold on
-% max_len = 0;
-% for k = 1:length(lines)
-%    xy = [lines(k).point1; lines(k).point2];
-%    plot(xy(:,1),xy(:,2),'LineWidth',2,'Color','green');
-% 
-%    % Determine the endpoints of the longest line segment
-%    len = norm(lines(k).point1 - lines(k).point2);
-%    if ( len > max_len)
-%       max_len = len;
-%       xy_long = xy;
-%    end
-% end
-% % highlight the longest line segment
-% plot(xy_long(:,1),xy_long(:,2),'LineWidth',2,'Color','red');
 
