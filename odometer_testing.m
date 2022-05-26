@@ -41,17 +41,21 @@ angles = [-90:1:-45, 45:1:89];
 [H, theta, rho] = hough(edges_canny, 'RhoResolution', 1, 'Theta', angles); %'Theta', -90:0.5:89);
 
 % (7a) Identify a set of peaks in the Hough accumulation matrix
-P = houghpeaks(H, 5);
+peaks = houghpeaks(H, 5);
 
 % (7b) Get rows and thetas of lines occurring above the {threshold}
 threshold = 115;
 logic_nonzero = H>=threshold;
 [rows, cols] = find(logic_nonzero);
 
+% TODO FINO A QUI TUTTO BENE IN TEORIA, VERIFICA I VALORI DI peaks ANCHE
+% CON QUELLI SUL FOGLIO.
+
 % (8) Find the top P lines previously identified
 % TODO Fillgap and MinLength are the ones I have to use to obtain continuous lines
-lines = houghlines(edges_canny, theta, rho, P, 'FillGap', 5, 'MinLength', 7);
+lines = houghlines(edges_canny, theta, rho, peaks, 'FillGap', 5, 'MinLength', 7);
 
+% TODO: note on the .odt document about houghpeaks and my method.
 close all;
 
 % (9a) Plot every peak line - Documentation example
