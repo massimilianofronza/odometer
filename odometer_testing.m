@@ -41,10 +41,10 @@ angles = [-90:1:-45, 45:1:89];
 [H, theta, rho] = hough(edges_canny, 'RhoResolution', 1, 'Theta', angles); %'Theta', -90:0.5:89);
 
 % (7a) Identify a set of peaks in the Hough accumulation matrix
-doc_peaks = houghpeaks(H, 50);
+doc_peaks = houghpeaks(H, 10);
 
 % (7b) Get rows and thetas of lines occurring above the {threshold}
-threshold = 100;
+threshold = 85;
 logic_nonzero = H>=threshold;
 [rows, cols] = find(logic_nonzero);
 my_peaks = [rows, cols];
@@ -56,15 +56,15 @@ my_peaks = [rows, cols];
 % Fillgap: Distance between two line segments associated with the same
 % Hough transform bin - default: 20
 % MinLength: Minimum line length - default: 40
-doc_lines = houghlines(edges_canny, theta, rho, doc_peaks, 'FillGap', 50, 'MinLength', 50);
-my_lines = houghlines(edges_canny, theta, rho, my_peaks, 'FillGap', 50, 'MinLength', 50);
+doc_lines = houghlines(edges_canny, theta, rho, doc_peaks, 'FillGap', 45, 'MinLength', 40);
+my_lines = houghlines(edges_canny, theta, rho, my_peaks, 'FillGap', 45, 'MinLength', 300);
 
 % TODO: note on the .odt document about houghpeaks and my method.
 close all;
 
 % (9a) Plot every peak line - Documentation lines
 lines = doc_lines;
-figure, imshow(grayROI), title('Detected lines on ROI Documentation'), hold on;
+figure, imshow(grayROI), title('Detected lines on ROI - Documentation version'), hold on;
 max_len = 0;        % Length of the longest line
 xy_long = 0;        % xy coordinates of the longest line
 for i = 1:length(lines)
@@ -85,7 +85,7 @@ for i = 1:length(lines)
 end
 % highlight the longest line segment
 if xy_long ~= 0
-    plot(xy_long(:,1), xy_long(:,2), 'LineWidth', 2, 'Color', 'red');
+    plot(xy_long(:,1), xy_long(:,2), 'LineWidth', 2, 'Color', 'green'); % TODO change this into red to have th longest line highlighted
 else
     error("MY DEBUG INFO: No lines were found!");
 end
@@ -93,7 +93,7 @@ hold off;
 
 % (9b) Plot every peak line - My lines
 lines = my_lines;
-figure, imshow(grayROI), title('Detected lines on ROI my lines'), hold on;
+figure, imshow(grayROI), title('Detected lines on ROI - My version'), hold on;
 max_len = 0;
 for i = 1:length(lines)
     xy = [lines(i).point1; lines(i).point2];
@@ -112,7 +112,7 @@ for i = 1:length(lines)
     disp(log);
 end
 % highlight the longest line segment
-plot(xy_long(:,1), xy_long(:,2), 'LineWidth', 2, 'Color', 'red');
+plot(xy_long(:,1), xy_long(:,2), 'LineWidth', 2, 'Color', 'green');
 hold off;
 
 disp('all done.');
