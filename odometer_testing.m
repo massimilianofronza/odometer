@@ -11,7 +11,7 @@ clc;
 %%% Global settings
 DATA = "./odometers/";      % Images folder 
 DEBUG = true;               % If true, shows debug info in the console
-FILE = 1;                   % File number to pick from the images folder
+FILE = 8;                   % File number to pick from the images folder
 
 % Read the image
 files = dir(DATA + '*.jpg');
@@ -19,26 +19,18 @@ nFiles = length(files);
 currentFileName = files(FILE).name;
 img = imread(DATA + currentFileName);
 
-% img = imread('test.jpg');
-% img = imread('radiant.jpg');  % For detecting a range of angles
-
 % (1a) Hard-coded coordinates of rectangle
 rect = [545 594 335 145];
-% rect = [192 184 180 188];
 
 % (1b) Select the Region of Interest(ROI) by hand
-% figure; imshow(img); title('Odometro1.jpg');    % Comment this...
-% rect = getrect;         % ...and this if you want the fixed coordinates
+figure; imshow(img); title('Odometro1.jpg');    % Comment this...
+rect = getrect;         % ...and this if you want the fixed coordinates
 
 % (2) Crop the ROI
 ROI = imcrop(img, rect);
 
-% (3a) Convert into gray scale the 3-dimensional image
+% (3) Convert into gray scale the 3-dimensional image
 grayROI = rgb2gray(ROI);
-% figure; imshow(grayROI); title('My attempt');%title('ROI gray');
-
-% (3b) If you use the radiant image
-% grayROI = ROI;
 
 % (4) Extract the edges of the gray image
 edges_canny = edge(grayROI, "canny");
