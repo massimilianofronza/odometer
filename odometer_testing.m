@@ -49,70 +49,41 @@ logic_nonzero = H>=threshold;
 [rows, cols] = find(logic_nonzero);
 my_peaks = [rows, cols];
 
-% TODO FINO A QUI TUTTO BENE IN TEORIA, VERIFICA I VALORI DI peaks ANCHE
-% CON QUELLI SUL FOGLIO.
-
 % (8) Find the top P lines previously identified
 % Fillgap: Distance between two line segments associated with the same
 % Hough transform bin - default: 20
-% MinLength: Minimum line length - default: 40
+% MinLength: Minimum line length - default: 40, suggested value: ~85% of
+% size(grayROI, 2)
 doc_lines = houghlines(edges_canny, theta, rho, doc_peaks, 'FillGap', 45, 'MinLength', 40);
 my_lines = houghlines(edges_canny, theta, rho, my_peaks, 'FillGap', 45, 'MinLength', 300);
 
-% TODO: note on the .odt document about houghpeaks and my method.
 close all;
 
 % (9a) Plot every peak line - Documentation lines
 lines = doc_lines;
 figure, imshow(grayROI), title('Detected lines on ROI - Documentation version'), hold on;
-max_len = 0;        % Length of the longest line
 xy_long = 0;        % xy coordinates of the longest line
 for i = 1:length(lines)
     xy = [lines(i).point1; lines(i).point2];
     plot(xy(:, 1), xy(:, 2), 'LineWidth', 2, 'Color', 'green');
 
-    % Determine the length of the line.
-    % norm(v) returns the Euclidean norm given the vector v
-    len = norm(lines(i).point1 - lines(i).point2);
-    if (len > max_len)
-        max_len = len;
-        xy_long = xy;
-    end
-
     % Progression output
     log = sprintf('%d/%d', i, size(lines, 2));
     disp(log);
-end
-% highlight the longest line segment
-if xy_long ~= 0
-    plot(xy_long(:,1), xy_long(:,2), 'LineWidth', 2, 'Color', 'green'); % TODO change this into red to have th longest line highlighted
-else
-    error("MY DEBUG INFO: No lines were found!");
 end
 hold off;
 
 % (9b) Plot every peak line - My lines
 lines = my_lines;
 figure, imshow(grayROI), title('Detected lines on ROI - My version'), hold on;
-max_len = 0;
 for i = 1:length(lines)
     xy = [lines(i).point1; lines(i).point2];
     plot(xy(:, 1), xy(:, 2), 'LineWidth', 2, 'Color', 'green');
-
-    % Determine the length of the line.
-    % norm(v) returns the Euclidean norm given the vector v
-    len = norm(lines(i).point1 - lines(i).point2);
-    if (len > max_len)
-        max_len = len;
-        xy_long = xy;
-    end
 
     % Progression output
     log = sprintf('%d/%d', i, size(lines, 2));
     disp(log);
 end
-% highlight the longest line segment
-plot(xy_long(:,1), xy_long(:,2), 'LineWidth', 2, 'Color', 'green');
 hold off;
 
 disp('all done.');
