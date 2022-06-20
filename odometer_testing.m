@@ -12,6 +12,9 @@ clc;
 DATA = "./odometers/";      % Images folder 
 DEBUG = true;               % If true, shows debug info in the console
 FILE = 8;                   % File number to pick from the images folder
+HOUGH_THRESHOLD = 85;
+MIN_LEN_FRACTION = 0.9;
+FILL_GAP_FRACTION = 0.15;
 
 % Read the image
 files = dir(DATA + '*.jpg');
@@ -20,11 +23,12 @@ currentFileName = files(FILE).name;
 img = imread(DATA + currentFileName);
 
 % (1a) Hard-coded coordinates of rectangle
-rect = [545 594 335 145];
+% rect = [545 594 335 145];
+rect = [575 599 282 63];
 
 % (1b) Select the Region of Interest(ROI) by hand
-figure; imshow(img); title('Odometro1.jpg');    % Comment this...
-rect = getrect;         % ...and this if you want the fixed coordinates
+% figure; imshow(img); title('Odometro1.jpg');    % Comment this...
+% rect = getrect;         % ...and this if you want the fixed coordinates
 
 % (2) Crop the ROI
 ROI = imcrop(img, rect);
@@ -42,11 +46,10 @@ angles = [-90:1:-45, 45:1:89];
 [H, theta, rho] = hough(edges_canny, 'RhoResolution', 1, 'Theta', angles); %'Theta', -90:0.5:89);
 
 % (7a) Identify a set of peaks in the Hough accumulation matrix
-doc_peaks = houghpeaks(H, 10);
+doc_peaks = houghpeaks(H, 8);
 
-% (7b) Get rows and thetas of lines occurring above the {threshold}
-threshold = 85;
-logic_nonzero = H>=threshold;
+% (7b) Get rows and thetas of lines occurring above the {HOUGH_THRESHOLD}
+logic_nonzero = H>=HOUGH_THRESHOLD;
 [rows, cols] = find(logic_nonzero);
 my_peaks = [rows, cols];
 
@@ -55,14 +58,16 @@ my_peaks = [rows, cols];
 % Hough transform bin - default: 20
 % MinLength: Minimum line length - default: 40, suggested value: ~85% of
 % size(grayROI, 2)
-doc_lines = houghlines(edges_canny, theta, rho, doc_peaks, 'FillGap', 45, 'MinLength', 40);
-my_lines = houghlines(edges_canny, theta, rho, my_peaks, 'FillGap', 45, 'MinLength', 300);
+minLength = size(grayROI, 2)*MIN_LEN_FRACTION;
+fillGap = size(grayROI, 2)*FILL_GAP_FRACTION;
+doc_lines = houghlines(edges_canny, theta, rho, doc_peaks, 'FillGap', fillGap, 'MinLength', minLength);
+my_lines = houghlines(edges_canny, theta, rho, my_peaks, 'FillGap', fillGap, 'MinLength', minLength);
 
 close all;
 
 % (9a) Plot every peak line - Documentation lines
 lines = doc_lines;
-figure, imshow(grayROI), title('Detected lines on ROI - Documentation version'), hold on;
+subplot(2,1,1), imshow(grayROI), title('Detected lines - Doc version'), hold on;
 for i = 1:length(lines)
     xy = [lines(i).point1; lines(i).point2];
     plot(xy(:, 1), xy(:, 2), 'LineWidth', 2, 'Color', 'green');
@@ -75,7 +80,7 @@ hold off;
 
 % (9b) Plot every peak line - My lines
 lines = my_lines;
-figure, imshow(grayROI), title('Detected lines on ROI - My version'), hold on;
+subplot(2,1,2), imshow(grayROI), title('Detected lines - My version'), hold on;
 for i = 1:length(lines)
     xy = [lines(i).point1; lines(i).point2];
     plot(xy(:, 1), xy(:, 2), 'LineWidth', 2, 'Color', 'green');
