@@ -8,8 +8,17 @@ close all;
 clear all; % Slows down computation since it de-allocates the variables
 clc;
 
+%%% Global settings
+DATA = "./odometers/";      % Images folder 
+DEBUG = true;               % If true, shows debug info in the console
+FILE = 1;                   % File number to pick from the images folder
+
 % Read the image
-img = imread('odometro1.jpg');
+files = dir(DATA + '*.jpg');
+nFiles = length(files);
+currentFileName = files(FILE).name;
+img = imread(DATA + currentFileName);
+
 % img = imread('test.jpg');
 % img = imread('radiant.jpg');  % For detecting a range of angles
 
@@ -62,7 +71,6 @@ close all;
 % (9a) Plot every peak line - Documentation lines
 lines = doc_lines;
 figure, imshow(grayROI), title('Detected lines on ROI - Documentation version'), hold on;
-xy_long = 0;        % xy coordinates of the longest line
 for i = 1:length(lines)
     xy = [lines(i).point1; lines(i).point2];
     plot(xy(:, 1), xy(:, 2), 'LineWidth', 2, 'Color', 'green');
@@ -88,22 +96,25 @@ hold off;
 
 disp('all done.');
 
-% disp('Printing rows and cols actual rhos and thetas:');
-% for i = 1:length(rows)
-%     log = sprintf('%d, %d', rho(rows(i)), theta(cols(i)));
-%     disp(log);
-% end
 
-disp(' DEBUGGING NOW');
-peaks = doc_peaks;
-disp("Printing doc peaks");
-for j = 1:2
-    disp(peaks);
-    for i = 1:size(peaks, 1)
-        disp(H(peaks(i, 1), peaks(i, 2)));
-    end
-    if j == 1
-        disp("Printing my peaks");
-        peaks = my_peaks;
+if DEBUG
+    % disp('Printing rows and cols actual rhos and thetas:');
+    % for i = 1:length(rows)
+    %     log = sprintf('%d, %d', rho(rows(i)), theta(cols(i)));
+    %     disp(log);
+    % end
+    
+    disp(' DEBUGGING NOW');
+    peaks = doc_peaks;
+    disp("Printing doc peaks");
+    for j = 1:2
+        disp(peaks);
+        for i = 1:size(peaks, 1)
+            disp(H(peaks(i, 1), peaks(i, 2)));
+        end
+        if j == 1
+            disp("Printing my peaks");
+            peaks = my_peaks;
+        end
     end
 end
