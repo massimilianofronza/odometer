@@ -11,7 +11,9 @@ clc;
 %%% Global settings
 DATA = "./odometers/";      % Images folder 
 DEBUG = true;               % If true, shows debug info in the console
-FILE = 8;                   % File number to pick from the images folder
+FILE = 1;                   % File number to pick from the images folder
+FIXED_ROI = true;           % If true, picks the hard-coded ROI. If false, take it manually
+N_PEAKS = 8;
 HOUGH_THRESHOLD = 85;
 MIN_LEN_FRACTION = 0.9;
 FILL_GAP_FRACTION = 0.15;
@@ -22,13 +24,14 @@ nFiles = length(files);
 currentFileName = files(FILE).name;
 img = imread(DATA + currentFileName);
 
-% (1a) Hard-coded coordinates of rectangle
-% rect = [545 594 335 145];
-rect = [575 599 282 63];
-
-% (1b) Select the Region of Interest(ROI) by hand
-% figure; imshow(img); title('Odometro1.jpg');    % Comment this...
-% rect = getrect;         % ...and this if you want the fixed coordinates
+% (1) Take the hard-coded ROI or a manual one
+if FIXED_ROI
+    rect = [545 594 335 145];       % These are for odometro1.jpg
+    % rect = [575 599 282 63];
+else
+    figure; imshow(img); title(currentFileName);
+    rect = getrect;
+end
 
 % (2) Crop the ROI
 ROI = imcrop(img, rect);
@@ -46,7 +49,7 @@ angles = [-90:1:-45, 45:1:89];
 [H, theta, rho] = hough(edges_canny, 'RhoResolution', 1, 'Theta', angles); %'Theta', -90:0.5:89);
 
 % (7a) Identify a set of peaks in the Hough accumulation matrix
-doc_peaks = houghpeaks(H, 8);
+doc_peaks = houghpeaks(H, N_PEAKS);
 
 % (7b) Get rows and thetas of lines occurring above the {HOUGH_THRESHOLD}
 logic_nonzero = H>=HOUGH_THRESHOLD;
@@ -91,8 +94,23 @@ for i = 1:length(lines)
 end
 hold off;
 
-disp('all done.');
+% (10) Rotate the image
+rotations = zeros(length(my_lines), 1);
+for i = 1:length(my_lines)
+    rotations(i) = my_lines(i).theta;
+end
+rotation_average = mean(rotations);
+if rotation_average>0
+    rotation = -(90-rotation_average);
+else
+    rotation = (90+rotation_average);
+end
 
+rotatedROI = imrotate(ROI, rotation);
+figure, imshow(rotatedROI), title('Rotated ROI according to lines - My version'), hold on;
+hold off;
+
+disp('all done.');
 
 if DEBUG
     % disp('Printing rows and cols actual rhos and thetas:');
