@@ -9,20 +9,20 @@ clear all; % Slows down computation since it de-allocates the variables
 clc;
 
 %%% Global settings
-DATA = "./odometers/";      % Images folder 
-DEBUG = true;               % If true, shows debug info in the console
-FILE = 1;                   % File number to pick from the images folder
-FIXED_ROI = true;           % If true, picks the hard-coded ROI. If false, take it manually
-N_PEAKS = 8;
-HOUGH_THRESHOLD = 85;
+IMAGES = "./odometers/";    % Images folder 
+DEBUG = false;              % If true, shows debug info in the console
+FILE = 4;                   % File number to pick from the images folder
+FIXED_ROI = false;          % If true, picks the hard-coded ROI. If false, take it manually
+N_PEAKS = 10;
+HOUGH_THRESHOLD = 90;
 MIN_LEN_FRACTION = 0.9;
 FILL_GAP_FRACTION = 0.15;
 
 % Read the image
-files = dir(DATA + '*.jpg');
+files = dir(IMAGES + '*.jpg');
 nFiles = length(files);
 currentFileName = files(FILE).name;
-img = imread(DATA + currentFileName);
+img = imread(IMAGES + currentFileName);
 
 % (1) Take the hard-coded ROI or a manual one
 if FIXED_ROI
@@ -43,7 +43,7 @@ grayROI = rgb2gray(ROI);
 edges_canny = edge(grayROI, "canny");
 
 % (5) Horizontal angles to be identified in the plate identification scenario
-angles = [-90:1:-45, 45:1:89];
+angles = [-90:1:-60, 30:1:89]; % [-90:1:-45, 45:1:89]
 
 % (6) Run te Hough Lines algorithm for the detection of horizontal lines
 [H, theta, rho] = hough(edges_canny, 'RhoResolution', 1, 'Theta', angles); %'Theta', -90:0.5:89);
@@ -73,10 +73,10 @@ lines = doc_lines;
 subplot(2,1,1), imshow(grayROI), title('Detected lines - Doc version'), hold on;
 for i = 1:length(lines)
     xy = [lines(i).point1; lines(i).point2];
-    plot(xy(:, 1), xy(:, 2), 'LineWidth', 2, 'Color', 'green');
+    plot(xy(:, 1), xy(:, 2), 'LineWidth', 1, 'Color', 'green');
 
     % Progression output
-    log = sprintf('%d/%d', i, size(lines, 2));
+    log = sprintf('%d/%d doc lines', i, size(lines, 2));
     disp(log);
 end
 hold off;
@@ -86,40 +86,62 @@ lines = my_lines;
 subplot(2,1,2), imshow(grayROI), title('Detected lines - My version'), hold on;
 for i = 1:length(lines)
     xy = [lines(i).point1; lines(i).point2];
-    plot(xy(:, 1), xy(:, 2), 'LineWidth', 2, 'Color', 'green');
+    plot(xy(:, 1), xy(:, 2), 'LineWidth', 1, 'Color', 'green');
 
     % Progression output
-    log = sprintf('%d/%d', i, size(lines, 2));
+    log = sprintf('%d/%d my lines', i, size(lines, 2));
     disp(log);
 end
 hold off;
 
-% (10) Rotate the image
-rotations = zeros(length(my_lines), 1);
-for i = 1:length(my_lines)
-    rotations(i) = my_lines(i).theta;
+% (10) Plot only the lines with the most frequent theta - My lines
+lines = my_lines;
+rotations = zeros(length(lines), 1);
+for i = 1:length(lines)
+    rotations(i) = lines(i).theta;
 end
-rotation_average = mean(rotations);
-if rotation_average>0
-    rotation = -(90-rotation_average);
+rotation_factor = mode(rotations);
+
+figure, imshow(grayROI), %title('Only the most frequent thetas - My version'),
+hold on;
+j = 0;
+for i = 1:length(lines)
+    if lines(i).theta == rotation_factor
+        xy = [lines(i).point1; lines(i).point2];
+        plot(xy(:, 1), xy(:, 2), 'LineWidth', 1, 'Color', 'green');
+    
+        % Progression output
+        j = j + 1;
+        log = sprintf('%d final lines', j);
+        disp(log);
+    end
+end
+hold off;
+saveas(gcf, "rotated - " + currentFileName);
+
+% (11) Rotate the image
+if rotation_factor > 0
+    rotation = -(90 - rotation_factor);
 else
-    rotation = (90+rotation_average);
+    rotation =  (90 + rotation_factor);
 end
 
-rotatedROI = imrotate(ROI, rotation);
-figure, imshow(rotatedROI), title('Rotated ROI according to lines - My version'), hold on;
-hold off;
+processed_img = imread("rotated - " + currentFileName);
+rotatedROI = imrotate(processed_img, rotation);
+figure, imshow(rotatedROI), title('Rotated ROI according to lines - My version');
+
 
 disp('all done.');
 
 if DEBUG
+    disp(' DEBUGGING NOW');
+
     % disp('Printing rows and cols actual rhos and thetas:');
     % for i = 1:length(rows)
     %     log = sprintf('%d, %d', rho(rows(i)), theta(cols(i)));
     %     disp(log);
     % end
     
-    disp(' DEBUGGING NOW');
     peaks = doc_peaks;
     disp("Printing doc peaks");
     for j = 1:2
