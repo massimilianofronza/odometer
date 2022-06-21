@@ -11,14 +11,14 @@ clc;
 %%% Global settings
 IMAGES = "./odometers/";    % Images folder 
 DEBUG = false;              % If true, shows debug info in the console
-FILE = 4;                   % File number to pick from the images folder
+FILE = 8;                   % File number to pick from the images folder
 FIXED_ROI = false;          % If true, picks the hard-coded ROI. If false, take it manually
-N_PEAKS = 10;
-HOUGH_THRESHOLD = 90;
-MIN_LEN_FRACTION = 0.9;
-FILL_GAP_FRACTION = 0.15;
+N_PEAKS = 10;               % Amount of desired peaks in the first identification method
+HOUGH_THRESHOLD = 85;      % The more confused the image, the higher this should be
+MIN_LEN_FRACTION = 0.9;     % Minimum (fraction of) length for a line to be considered
+FILL_GAP_FRACTION = 0.15;   % Minimum (fraction of) space between each number on the odometer
 
-% Read the image
+% (0) Read the image
 files = dir(IMAGES + '*.jpg');
 nFiles = length(files);
 currentFileName = files(FILE).name;
@@ -70,7 +70,7 @@ close all;
 
 % (9a) Plot every peak line - Documentation lines
 lines = doc_lines;
-subplot(2,1,1), imshow(grayROI), title('Detected lines - Doc version'), hold on;
+subplot(2,1,1), imshow(grayROI), title('(9a) Detected lines - Doc version'), hold on;
 for i = 1:length(lines)
     xy = [lines(i).point1; lines(i).point2];
     plot(xy(:, 1), xy(:, 2), 'LineWidth', 1, 'Color', 'green');
@@ -83,7 +83,7 @@ hold off;
 
 % (9b) Plot every peak line - My lines
 lines = my_lines;
-subplot(2,1,2), imshow(grayROI), title('Detected lines - My version'), hold on;
+subplot(2,1,2), imshow(grayROI), title('(9b) Detected lines - My version'), hold on;
 for i = 1:length(lines)
     xy = [lines(i).point1; lines(i).point2];
     plot(xy(:, 1), xy(:, 2), 'LineWidth', 1, 'Color', 'green');
@@ -102,8 +102,7 @@ for i = 1:length(lines)
 end
 rotation_factor = mode(rotations);
 
-figure, imshow(grayROI), %title('Only the most frequent thetas - My version'),
-hold on;
+figure('Name','(10) Only the lines with the most frequent theta'), imshow(grayROI), hold on;
 j = 0;
 for i = 1:length(lines)
     if lines(i).theta == rotation_factor
@@ -126,10 +125,13 @@ else
     rotation =  (90 + rotation_factor);
 end
 
-processed_img = imread("rotated - " + currentFileName);
-rotatedROI = imrotate(processed_img, rotation);
-figure, imshow(rotatedROI), title('Rotated ROI according to lines - My version');
-
+if isnan(rotation)
+    error('ERROR: No horizontal lines where identified! Try decreasing the {HOUGH_THRESHOLD} or changing the region of interest');
+else
+    processed_img = imread("rotated - " + currentFileName);
+    rotatedROI = imrotate(processed_img, rotation);
+    figure, imshow(rotatedROI), title('(11) Rotated ROI according to lines');
+end
 
 disp('all done.');
 
