@@ -11,11 +11,11 @@ clc;
 %%% Global settings
 IMAGES = "./odometers/";    % Images folder 
 DEBUG = false;              % If true, shows debug info in the console
-FILE = 8;                   % File number to pick from the images folder
+FILE = 5;                   % File number to pick from the images folder
 FIXED_ROI = false;          % If true, picks the hard-coded ROI. If false, take it manually
 N_PEAKS = 10;               % Amount of desired peaks in the first identification method
 HOUGH_THRESHOLD = 85;      % The more confused the image, the higher this should be
-MIN_LEN_FRACTION = 0.9;     % Minimum (fraction of) length for a line to be considered
+MIN_LEN_FRACTION = 0.85;    % Minimum (fraction of) length for a line to be considered
 FILL_GAP_FRACTION = 0.15;   % Minimum (fraction of) space between each number on the odometer
 
 % (0) Read the image
@@ -27,7 +27,7 @@ img = imread(IMAGES + currentFileName);
 % (1) Take the hard-coded ROI or a manual one
 if FIXED_ROI
     rect = [545 594 335 145];       % These are for odometro1.jpg
-    % rect = [575 599 282 63];
+%     rect = 1.0e+03*[1.1537 1.9921 0.8317 0.2722];
 else
     figure; imshow(img); title(currentFileName);
     rect = getrect;
@@ -116,7 +116,9 @@ for i = 1:length(lines)
     end
 end
 hold off;
-saveas(gcf, "rotated - " + currentFileName);
+saveas(gcf, "saveas - " + currentFileName);
+opts = {'-native'};
+export_fig("export_fig - " + currentFileName, opts);
 
 % (11) Rotate the image
 if rotation_factor > 0
@@ -128,10 +130,12 @@ end
 if isnan(rotation)
     error('ERROR: No horizontal lines where identified! Try decreasing the {HOUGH_THRESHOLD} or changing the region of interest');
 else
-    processed_img = imread("rotated - " + currentFileName);
-    rotatedROI = imrotate(processed_img, rotation);
+    processed_img = imread("export_fig - " + currentFileName);
+    rotatedROI = imrotate(processed_img, rotation, 'bilinear', 'crop');
     figure, imshow(rotatedROI), title('(11) Rotated ROI according to lines');
 end
+saveas(gca, "rotated - " + currentFileName);
+
 
 disp('all done.');
 
