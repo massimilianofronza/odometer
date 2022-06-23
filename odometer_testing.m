@@ -11,10 +11,10 @@ clc;
 %%% Global settings
 IMAGES = "./odometers/";    % Images folder 
 DEBUG = false;              % If true, shows debug info in the console
-FILE = 5;                   % File number to pick from the images folder
+FILE = 6;                   % File number to pick from the images folder
 FIXED_ROI = false;          % If true, picks the hard-coded ROI. If false, take it manually
 N_PEAKS = 10;               % Amount of desired peaks in the first identification method
-HOUGH_THRESHOLD = 85;      % The more confused the image, the higher this should be
+HOUGH_THRESHOLD = 125;      % The more confused the image, the higher this should be
 MIN_LEN_FRACTION = 0.85;    % Minimum (fraction of) length for a line to be considered
 FILL_GAP_FRACTION = 0.15;   % Minimum (fraction of) space between each number on the odometer
 
@@ -27,7 +27,6 @@ img = imread(IMAGES + currentFileName);
 % (1) Take the hard-coded ROI or a manual one
 if FIXED_ROI
     rect = [545 594 335 145];       % These are for odometro1.jpg
-%     rect = 1.0e+03*[1.1537 1.9921 0.8317 0.2722];
 else
     figure; imshow(img); title(currentFileName);
     rect = getrect;
@@ -43,7 +42,7 @@ grayROI = rgb2gray(ROI);
 edges_canny = edge(grayROI, "canny");
 
 % (5) Horizontal angles to be identified in the plate identification scenario
-angles = [-90:1:-60, 30:1:89]; % [-90:1:-45, 45:1:89]
+angles = [-90:0.5:-60, 30:0.5:89]; % [-90:1:-45, 45:1:89]
 
 % (6) Run te Hough Lines algorithm for the detection of horizontal lines
 [H, theta, rho] = hough(edges_canny, 'RhoResolution', 1, 'Theta', angles); %'Theta', -90:0.5:89);
@@ -131,7 +130,7 @@ if isnan(rotation)
     error('ERROR: No horizontal lines where identified! Try decreasing the {HOUGH_THRESHOLD} or changing the region of interest');
 else
     processed_img = imread("export_fig - " + currentFileName);
-    rotatedROI = imrotate(processed_img, rotation, 'bilinear', 'crop');
+    rotatedROI = imrotate(processed_img, rotation, 'bilinear');
     figure, imshow(rotatedROI), title('(11) Rotated ROI according to lines');
 end
 saveas(gca, "rotated - " + currentFileName);
