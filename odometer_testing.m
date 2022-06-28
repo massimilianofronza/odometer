@@ -5,16 +5,17 @@
 %       May 2022
 
 close all;
-clear all; % Slows down computation since it de-allocates the variables
+clear all; % Slows down computation since it re-allocates all the variables,
+            % but makes sure that you don't use variables from previous executions
 clc;
 
 %%% Global settings
 IMAGES = "./odometers/";    % Images folder 
 DEBUG = false;              % If true, shows debug info in the console
-FILE = 6;                   % File number to pick from the images folder
+FILE = 1;                   % File number to pick from the images folder
 FIXED_ROI = false;          % If true, picks the hard-coded ROI. If false, take it manually
 N_PEAKS = 10;               % Amount of desired peaks in the first identification method
-HOUGH_THRESHOLD = 125;      % The more confused the image, the higher this should be
+HOUGH_THRESHOLD = 105;      % The more confused the image, the higher this should be
 MIN_LEN_FRACTION = 0.85;    % Minimum (fraction of) length for a line to be considered
 FILL_GAP_FRACTION = 0.15;   % Minimum (fraction of) space between each number on the odometer
 
@@ -93,7 +94,9 @@ for i = 1:length(lines)
 end
 hold off;
 
-% (10) Plot only the lines with the most frequent theta - My lines
+% (10) Plot only the lines with the most frequent theta on the ROI
+
+% Calculate the most common theta
 lines = my_lines;
 rotations = zeros(length(lines), 1);
 for i = 1:length(lines)
@@ -101,7 +104,9 @@ for i = 1:length(lines)
 end
 rotation_factor = mode(rotations);
 
-figure('Name','(10) Only the lines with the most frequent theta'), imshow(grayROI), hold on;
+% Plot lines on the ROI
+figure('Name','(10) Only the lines with the most frequent theta'), imshow(grayROI);
+hold on;
 j = 0;
 for i = 1:length(lines)
     if lines(i).theta == rotation_factor
@@ -115,9 +120,6 @@ for i = 1:length(lines)
     end
 end
 hold off;
-saveas(gcf, "saveas - " + currentFileName);
-opts = {'-native'};
-export_fig("export_fig - " + currentFileName, opts);
 
 % (11) Rotate the image
 if rotation_factor > 0
@@ -127,14 +129,12 @@ else
 end
 
 if isnan(rotation)
-    error('ERROR: No horizontal lines where identified! Try decreasing the {HOUGH_THRESHOLD} or changing the region of interest');
+    error(['ERROR: No horizontal lines where identified! Try decreasing the ' ...
+        '{HOUGH_THRESHOLD} or changing the region of interest']);
 else
-    processed_img = imread("export_fig - " + currentFileName);
-    rotatedROI = imrotate(processed_img, rotation, 'bilinear');
+    rotatedROI = imrotate(grayROI, rotation, 'bilinear');
     figure, imshow(rotatedROI), title('(11) Rotated ROI according to lines');
 end
-saveas(gca, "rotated - " + currentFileName);
-
 
 disp('all done.');
 
