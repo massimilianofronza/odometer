@@ -2,20 +2,20 @@
 %      
 %       Odometer project, identification of bounding boxes
 %       Massimiliano Fronza - 220234
-%       May 2022
+%       July 2022
 
 close all;
 clear all; % Slows down computation since it re-allocates all the variables,
-            % but makes sure that you don't use variables from previous executions
+    % but makes sure that you don't use values from the previous executions
 clc;
 
 %%% Global settings
 IMAGES = "./odometers/";    % Images folder 
 DEBUG = false;              % If true, shows debug info in the console
-FILE = 3;                   % File number to pick from the images folder
+FILE = 4;                   % File number to pick from the images folder
 FIXED_ROI = false;          % If true, picks the hard-coded ROI. If false, take it manually
 N_PEAKS = 10;               % Amount of desired peaks in the first identification method
-HOUGH_THRESHOLD = 105;      % The more confused the image, the higher this should be
+HOUGH_THRESHOLD = 110;      % The more confused the image, the higher this should be
 MIN_LEN_FRACTION = 0.85;    % Minimum (fraction of) length for a line to be considered
 FILL_GAP_FRACTION = 0.15;   % Minimum (fraction of) space between each number on the odometer
 
@@ -48,10 +48,10 @@ angles = [-90:0.5:-60, 30:0.5:89]; % [-90:1:-45, 45:1:89]
 % (6) Run the Hough Lines algorithm for the detection of horizontal lines
 [H, theta, rho] = hough(edges_canny, 'RhoResolution', 1, 'Theta', angles);
 
-% (7a) Identify a set of peaks in the Hough accumulation matrix
+% (7_1) Identify a set of peaks in the Hough accumulation matrix
 met_1_peaks = houghpeaks(H, N_PEAKS);
 
-% (7b) Get rows and thetas of lines occurring above the {HOUGH_THRESHOLD}
+% (7_2) Get rows and thetas of lines occurring above the {HOUGH_THRESHOLD}
 logic_nonzero = H>=HOUGH_THRESHOLD;
 [rows, cols] = find(logic_nonzero);
 met_2_peaks = [rows, cols];
@@ -71,7 +71,8 @@ close all;
 % (9) Plot every peak line - first and second method plot
 lines = met_1_lines;
 for k = 1:2
-    subplot(2,1,k), imshow(grayROI), title('(9) Detected lines - Method %d', k);
+    this_title = sprintf('(9) Detected lines - Method %d', k);
+    subplot(2,1,k), imshow(grayROI), title(this_title);
     hold on;
     for i = 1:length(lines)
         xy = [lines(i).point1; lines(i).point2];
@@ -129,7 +130,7 @@ else
     figure, imshow(rotatedROI), title('(11) Rotated ROI according to lines');
 end
 
-disp('Main execution done.');
+disp('Main execution ended.');
 
 if DEBUG
     disp(' DEBUGGING NOW');
