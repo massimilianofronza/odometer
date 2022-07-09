@@ -15,7 +15,7 @@ DEBUG = false;              % If true, shows debug info in the console
 FILE = 4;                   % File number to pick from the images folder
 FIXED_ROI = false;          % If true, picks the hard-coded ROI. If false, take it manually
 N_PEAKS = 10;               % Amount of desired peaks in the first identification method
-HOUGH_THRESHOLD = 110;      % The more confused the image, the higher this should be
+HOUGH_THRESHOLD = 105;      % The more confused the image, the higher this should be
 MIN_LEN_FRACTION = 0.85;    % Minimum (fraction of) length for a line to be considered
 FILL_GAP_FRACTION = 0.15;   % Minimum (fraction of) space between each number on the odometer
 
@@ -49,7 +49,7 @@ angles = [-90:0.5:-60, 30:0.5:89]; % [-90:1:-45, 45:1:89]
 [H, theta, rho] = hough(edges_canny, 'RhoResolution', 1, 'Theta', angles);
 
 % (7_1) Identify a set of peaks in the Hough accumulation matrix
-met_1_peaks = houghpeaks(H, N_PEAKS);
+met_1_peaks = houghpeaks(H, N_PEAKS, 'threshold', HOUGH_THRESHOLD);
 
 % (7_2) Get rows and thetas of lines occurring above the {HOUGH_THRESHOLD}
 logic_nonzero = H>=HOUGH_THRESHOLD;
