@@ -9,10 +9,10 @@ clear all; % Slows down computation since it re-allocates all the variables,
     % but makes sure that you don't use values from the previous executions
 clc;
 
-%%% Global settings
+%%% Parameters of the pipeline
 IMAGES = "./odometers/";    % Images folder 
 DEBUG = false;              % If true, shows debug info in the console
-FILE = 4;                   % File number to pick from the images folder
+FILE = 8;                   % File number to pick from the images folder
 FIXED_ROI = false;          % If true, picks the hard-coded ROI. If false, take it manually
 N_PEAKS = 10;               % Amount of desired peaks in the first identification method
 HOUGH_THRESHOLD = 105;      % The more confused the image, the higher this should be
@@ -27,7 +27,7 @@ img = imread(IMAGES + currentFileName);
 
 % (1) Take the hard-coded ROI or a manual one
 if FIXED_ROI
-    rect = [545 594 335 145];       % These are for odometro1.jpg
+    rect = [545 594 335 145];               % For figure 8, odometro1.jpg
 else
     figure; imshow(img); title(currentFileName);
     rect = getrect;
@@ -43,7 +43,9 @@ grayROI = rgb2gray(ROI);
 edges_canny = edge(grayROI, "canny");
 
 % (5) Horizontal angles to be identified in the plate identification scenario
-angles = [-90:0.5:-60, 30:0.5:89]; % [-90:1:-45, 45:1:89]
+% To extend the angles in the range [-45°, 45°] the following configuration
+% may be useful: [-90:1:-45, 45:1:89]
+angles = [-90:0.5:-60, 30:0.5:89];
 
 % (6) Run the Hough Lines algorithm for the detection of horizontal lines
 [H, theta, rho] = hough(edges_canny, 'RhoResolution', 1, 'Theta', angles);
