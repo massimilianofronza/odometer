@@ -1,8 +1,7 @@
 % %%%% Fundamentals of Image and Video Processing %%%%
 %      
-%       Odometer project, identification of bounding boxes
-%       Massimiliano Fronza - 220234
-%       July 2022
+%       Odometer project, identification of horizontal bounding lines
+%       Massimiliano Fronza, July 2022
 
 close all;
 clear all; % Slows down computation since it re-allocates all the variables,
@@ -12,10 +11,10 @@ clc;
 %%% Parameters of the pipeline
 IMAGES = "./odometers/";    % Images folder 
 DEBUG = false;              % If true, shows debug info in the console
-FILE = 7;                   % File number to pick from the images folder
+FILE = 6;                   % File number to pick from the images folder
 FIXED_ROI = false;          % If true, picks the hard-coded ROI. If false, take it manually
 N_PEAKS = 10;               % Amount of desired peaks in the first identification method
-HOUGH_THRESHOLD = 95;      % The more confused the image, the higher this should be
+HOUGH_THRESHOLD = 110;      % The more confused the image, the higher this should be
 MIN_LEN_FRACTION = 0.85;    % Minimum (fraction of) length for a line to be considered
 FILL_GAP_FRACTION = 0.15;   % Minimum (fraction of) space between each number on the odometer
 
